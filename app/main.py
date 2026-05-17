@@ -70,9 +70,12 @@ def _configure_cors(application: FastAPI) -> None:
     application.add_middleware(SecurityHeadersMiddleware)
     application.add_middleware(
         CORSMiddleware,
-        allow_origins=ALLOWED_ORIGINS,
+        allow_origins=[
+            "http://localhost:5173",
+            "https://sgt-student-guide.vercel.app"
+        ],
         allow_credentials=True,
-        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allow_methods=["*"],
         allow_headers=["*"],
     )
 

@@ -31,8 +31,6 @@ from app.utils.response import error_response, success_response
 logger = logging.getLogger(__name__)
 
 ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://localhost:5173",
     "https://sgt-student-guide.vercel.app",
 ]
 

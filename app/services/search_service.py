@@ -42,13 +42,13 @@ async def global_search(query: str) -> dict[str, Any]:
     events = await _search_collection(
         "events",
         normalized_query,
-        ["title", "location", "description"],
+        ["title", "location", "venue", "description", "category"],
         "event",
     )
     clubs = await _search_collection(
         "clubs",
         normalized_query,
-        ["name", "description", "meeting_time"],
+        ["name", "description", "category", "coordinator", "meeting_time"],
         "club",
     )
     notices = await _search_collection(
@@ -60,8 +60,26 @@ async def global_search(query: str) -> dict[str, Any]:
     timetable = await _search_collection(
         "timetable",
         normalized_query,
-        ["course", "teacher", "room", "section", "department"],
+        ["course", "subject", "teacher", "room", "section", "department"],
         "timetable",
+    )
+    transport = await _search_collection(
+        "transport",
+        normalized_query,
+        ["route", "name", "from", "to"],
+        "transport",
+    )
+    locations = await _search_collection(
+        "locations",
+        normalized_query,
+        ["name", "description", "block", "building"],
+        "location",
+    )
+    syllabus = await _search_collection(
+        "syllabus",
+        normalized_query,
+        ["name", "subject", "description", "code"],
+        "syllabus",
     )
 
     grouped = {
@@ -70,6 +88,9 @@ async def global_search(query: str) -> dict[str, Any]:
         "clubs": clubs,
         "notices": notices,
         "timetable": timetable,
+        "transport": transport,
+        "locations": locations,
+        "syllabus": syllabus,
     }
 
     return {

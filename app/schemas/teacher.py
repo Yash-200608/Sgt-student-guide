@@ -1,8 +1,8 @@
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class TeacherCreate(BaseModel):
-    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+class TeacherBase(BaseModel):
+    model_config = ConfigDict(extra="ignore", str_strip_whitespace=True)
 
     name: str = Field(..., min_length=1, max_length=100, examples=["Dr. Neha Verma"])
     department: str = Field(..., min_length=1, max_length=100, examples=["Computer Science"])
@@ -14,9 +14,14 @@ class TeacherCreate(BaseModel):
         pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$",
         examples=["neha.verma@sgtuniversity.org"],
     )
+    expertise: str | list[str] | None = Field(default=None)
 
 
-class TeacherOut(TeacherCreate):
+class TeacherCreate(TeacherBase):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+
+class TeacherOut(TeacherBase):
     id: str
 
 
@@ -32,3 +37,4 @@ class TeacherUpdate(BaseModel):
         max_length=254,
         pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$",
     )
+    expertise: str | list[str] | None = Field(default=None)

@@ -28,6 +28,22 @@ async def create_database_indexes(database: AsyncIOMotorDatabase) -> None:
     await database.clubs.create_index("name")
     await database.clubs.create_index([("name", "text"), ("description", "text")])
 
+    await database.transport.create_index([("route", 1), ("name", 1)])
+    await database.transport.create_index([("from", 1), ("to", 1)])
+    await database.transport.create_index(
+        [("route", "text"), ("name", "text"), ("from", "text"), ("to", "text")]
+    )
+
+    await database.locations.create_index([("block", 1), ("building", 1), ("name", 1)])
+    await database.locations.create_index(
+        [("name", "text"), ("description", "text"), ("block", "text"), ("building", "text")]
+    )
+
+    await database.syllabus.create_index([("semester", 1), ("name", 1), ("subject", 1)])
+    await database.syllabus.create_index(
+        [("name", "text"), ("subject", "text"), ("description", "text"), ("code", "text")]
+    )
+
     await database.bookmarks.create_index([("user_id", 1), ("event_id", 1)], unique=True)
     await database.preferences.create_index("user_id", unique=True)
 

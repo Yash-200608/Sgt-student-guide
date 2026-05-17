@@ -5,7 +5,7 @@ from motor.motor_asyncio import (
 )
 
 from app.config.indexes import create_database_indexes
-from app.config.settings import get_required_env, get_settings
+from app.config.settings import get_mongodb_url, get_settings
 
 
 class MongoConnection:
@@ -21,7 +21,7 @@ def get_database_name() -> str:
 
 
 async def connect_to_mongo() -> None:
-    mongo_url = get_required_env("MONGO_URL")
+    mongo_url = get_mongodb_url()
     database_name = get_database_name()
     client = AsyncIOMotorClient(
         mongo_url,

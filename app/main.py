@@ -3,36 +3,36 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Request, status
+from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pymongo.errors import PyMongoError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config.database import close_mongo_connection, connect_to_mongo
+from app.config.settings import get_settings
 from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.routes import (
     admin,
     analytics,
     attendance,
     auth,
-    bus_routes,
     clubs,
     events,
+    locations,
     notices,
     notifications,
     personalization,
     search,
+    syllabus,
     teachers,
     timetable,
+    transport,
 )
 from app.utils.response import error_response, success_response
 
 logger = logging.getLogger(__name__)
-
-ALLOWED_ORIGINS = [
-    "https://sgt-student-guide.vercel.app",
-]
 
 
 @asynccontextmanager
@@ -54,24 +54,26 @@ def _register_routes(application: FastAPI) -> None:
     application.include_router(clubs.router)
     application.include_router(notifications.router)
     application.include_router(attendance.router)
-    application.include_router(bus_routes.router)
+    application.include_router(transport.router)
+    application.include_router(locations.router)
+    application.include_router(syllabus.router)
     application.include_router(search.router)
     application.include_router(admin.router)
     application.include_router(analytics.router)
 
-    @application.get("/api/health", tags=["Health"])
+    @application.get("/health", tags=["Health"])
+    @application.get("/api/health", tags=["Health"], include_in_schema=False)
     async def health_check() -> dict[str, Any]:
-        return success_response("SGT Navigator API is running.", {"status": "ok"})
+        return success_response("Backend running", {"status": "ok"})
 
 
 def _configure_cors(application: FastAPI) -> None:
+    settings = get_settings()
     application.add_middleware(SecurityHeadersMiddleware)
     application.add_middleware(
         CORSMiddleware,
-        allow_origins=[
-            "http://localhost:5173",
-            "https://sgt-student-guide.vercel.app"
-        ],
+        allow_origins=settings.cors_origins,
+        allow_origin_regex=settings.cors_origin_regex,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -79,15 +81,16 @@ def _configure_cors(application: FastAPI) -> None:
 
 
 def _register_exception_handlers(application: FastAPI) -> None:
-    @application.exception_handler(HTTPException)
+    @application.exception_handler(StarletteHTTPException)
     async def http_exception_handler(
         _request: Request,
-        exc: HTTPException,
+        exc: StarletteHTTPException,
     ) -> JSONResponse:
         message = exc.detail if isinstance(exc.detail, str) else "Request failed."
         return JSONResponse(
             status_code=exc.status_code,
             content=error_response(message),
+            headers=exc.headers,
         )
 
     @application.exception_handler(RequestValidationError)

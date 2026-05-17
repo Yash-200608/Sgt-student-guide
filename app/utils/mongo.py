@@ -1,4 +1,4 @@
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 from bson import ObjectId
@@ -6,16 +6,30 @@ from bson.errors import InvalidId
 from fastapi import HTTPException, status
 
 
+def serialize_value(value: Any) -> Any:
+    if isinstance(value, ObjectId):
+        return str(value)
+    if isinstance(value, list):
+        return [serialize_value(item) for item in value]
+    if isinstance(value, tuple):
+        return [serialize_value(item) for item in value]
+    if isinstance(value, Mapping):
+        return {
+            "id" if key == "_id" else key: serialize_value(item)
+            for key, item in value.items()
+        }
+
+    return value
+
+
 def serialize_document(document: Mapping[str, Any] | None) -> dict[str, Any] | None:
     if document is None:
         return None
 
-    serialized = dict(document)
-    serialized["id"] = str(serialized.pop("_id"))
-    return serialized
+    return serialize_value(document)
 
 
-def serialize_documents(documents: list[Mapping[str, Any]]) -> list[dict[str, Any]]:
+def serialize_documents(documents: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
     return [serialized for doc in documents if (serialized := serialize_document(doc))]
 
 

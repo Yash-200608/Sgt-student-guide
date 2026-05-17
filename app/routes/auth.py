@@ -7,22 +7,23 @@ from app.schemas.user import UserCreate, UserLogin
 from app.services import auth_service
 from app.utils.response import success_response
 
-router = APIRouter(prefix="/api/auth", tags=["Authentication"])
+router = APIRouter(tags=["Authentication"])
 
 
-@router.post("/signup", status_code=status.HTTP_201_CREATED)
+@router.post("/api/auth/signup", status_code=status.HTTP_201_CREATED)
 async def signup(payload: UserCreate) -> dict[str, Any]:
     data = await auth_service.signup(payload)
     return success_response("User registered successfully.", data)
 
 
-@router.post("/login")
+@router.post("/api/auth/login")
 async def login(payload: UserLogin) -> dict[str, Any]:
     data = await auth_service.login(payload)
     return success_response("Login successful.", data)
 
 
 @router.get("/profile")
+@router.get("/api/auth/profile", include_in_schema=False)
 async def get_profile(
     current_user: dict[str, Any] = Depends(get_current_user),
 ) -> dict[str, Any]:

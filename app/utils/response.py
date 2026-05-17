@@ -9,8 +9,9 @@ def success_response(message: str, data: Any = None) -> dict[str, Any]:
     }
 
 
-def error_response(message: str) -> dict[str, Any]:
+def error_response(message: str, data: Any = None) -> dict[str, Any]:
     return {
         "success": False,
         "message": message,
+        "data": data,
     }

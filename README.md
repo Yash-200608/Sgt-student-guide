@@ -71,15 +71,17 @@ Copy-Item .env.example .env
 Configure:
 
 ```env
-MONGO_URL=mongodb+srv://<username>:<password>@<cluster-url>/?retryWrites=true&w=majority
+MONGODB_URL=mongodb+srv://<username>:<password>@<cluster-url>/?retryWrites=true&w=majority
 DATABASE_NAME=sgt_navigator
 JWT_SECRET_KEY=replace-with-a-long-random-secret
 JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=60
 ALLOW_ADMIN_SIGNUP=false
+CORS_ORIGINS=http://localhost:5173,https://sgt-student-guide.vercel.app
+CORS_ORIGIN_REGEX=https://.*\.vercel\.app
 ```
 
-`MONGO_URL` and `JWT_SECRET_KEY` are required at runtime. Use a long random secret for JWT signing. Keep `ALLOW_ADMIN_SIGNUP=false` outside controlled local setup; seed the first admin directly in MongoDB or temporarily enable it in a trusted environment.
+`MONGODB_URL` and `JWT_SECRET_KEY` are required at runtime. `MONGO_URL` is accepted only as a legacy local fallback. Use a long random secret for JWT signing. Keep `ALLOW_ADMIN_SIGNUP=false` outside controlled local setup; seed the first admin directly in MongoDB or temporarily enable it in a trusted environment.
 
 ## MongoDB Setup
 
@@ -97,7 +99,10 @@ Collections used:
 - `preferences`
 - `notifications`
 - `attendance`
-- `bus_routes`
+- `transport`
+- `locations`
+- `syllabus`
+- `bus_routes` legacy read fallback for existing transport data
 
 ## Running the Server
 
@@ -120,7 +125,7 @@ http://localhost:8000/docs
 Health:
 
 ```text
-GET /api/health
+GET /health
 ```
 
 ## Authentication
@@ -159,6 +164,7 @@ Profile:
 
 ```http
 GET /api/auth/profile
+GET /profile
 ```
 
 Roles:
@@ -184,7 +190,8 @@ Error:
 ```json
 {
   "success": false,
-  "message": "Error message"
+  "message": "Error message",
+  "data": null
 }
 ```
 
@@ -193,19 +200,27 @@ Error:
 | Method | Endpoint | Description |
 | --- | --- | --- |
 | GET | `/api/timetable` | Get all timetable entries |
+| GET | `/timetable` | Clean alias for all timetable entries |
 | GET | `/api/timetable/{day}` | Get timetable entries by day |
 | POST | `/api/timetable` | Create timetable entry |
 | DELETE | `/api/timetable/{id}` | Delete timetable entry |
 | GET | `/api/events` | Get all events |
+| GET | `/events` | Clean alias for all events |
 | POST | `/api/events` | Create event |
 | DELETE | `/api/events/{id}` | Delete event |
 | GET | `/api/notices` | Get all notices |
+| GET | `/notices` | Clean alias for all notices |
 | POST | `/api/notices` | Create notice |
 | GET | `/api/teachers` | Get all teachers |
+| GET | `/teachers` | Clean alias for all teachers |
 | GET | `/api/teachers/{department}` | Get teachers by department |
 | POST | `/api/teachers` | Create teacher |
 | GET | `/api/clubs` | Get all clubs |
+| GET | `/clubs` | Clean alias for all clubs |
 | POST | `/api/clubs` | Create club |
+| GET | `/transport` | Clean transport route list |
+| GET | `/locations` | Clean location list |
+| GET | `/syllabus` | Clean syllabus list |
 
 ## Personalized APIs
 
@@ -250,8 +265,9 @@ Admin-only routes require a JWT for a user with role `admin`.
 | GET | `/api/notifications` | Current user's notifications |
 | PUT | `/api/notifications/{id}/read` | Mark notification as read |
 | GET | `/api/attendance/me` | Current user's attendance |
-| GET | `/api/bus-routes` | List bus routes |
-| GET | `/api/bus-routes/{id}` | Get bus route detail |
+| GET | `/api/transport` | List transport routes |
+| GET | `/api/bus-routes` | Legacy transport route list |
+| GET | `/api/bus-routes/{id}` | Legacy transport route detail |
 
 ## Development Workflow
 
